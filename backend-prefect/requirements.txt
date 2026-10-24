@@ -1,0 +1,19 @@
+# Orquestación / observabilidad
+prefect>=3.4,<4
+
+# API
+fastapi>=0.115
+uvicorn[standard]>=0.30
+python-dotenv>=1.0
+
+# Seguridad
+pyjwt>=2.9
+bcrypt>=4.2
+cryptography>=43
+
+# Infraestructura
+httpx>=0.27
+qrcode[pil]>=8.0
+
+# Pruebas
+pytest>=8.0

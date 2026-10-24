@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+backend-prefect/.env
+backend-prefect/local.db
+
+# Node
+node_modules/
+dist/
+.env.local
+.env
+.env*.local
+.vercel
+
+# Expo
+.expo/
+web-build/
+expo-env.d.ts
+ios/
+android/
+
+# Varios
+.DS_Store
+*.log
