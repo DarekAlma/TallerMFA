@@ -103,11 +103,15 @@ prefect server start
 
 Dashboard: <http://127.0.0.1:4200>
 
-**Terminal 2: API**
+**Terminal 2: API** (se ejecuta **dentro de `backend-prefect`**, no en la raíz del repositorio)
 
 ```bash
+cd backend-prefect
+.venv\Scripts\activate
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
+
+> Si lo corres desde la raíz `TallerMFA` aparece `ModuleNotFoundError: No module named 'app'`.
 
 Documentación interactiva: <http://localhost:8000/docs>. Comprobación rápida: <http://localhost:8000/health>.
 
@@ -151,34 +155,60 @@ npm run dev                     # http://localhost:5173
 
 La web tiene estas pantallas: Registro/Login → (si la 2FA no está activa) **Generar QR → Activar** → códigos de respaldo → **Bóveda**. Si la 2FA ya está activa, después de la contraseña va directo a **Verificación** (pestañas `TOTPStrategy` / `BackupCodeStrategy`). Incluye un botón *"Demo anti-replay: reenviar el último código usado"*.
 
+### Exponer el backend con ngrok
+
+El backend corre en tu PC (la guía dice que no hay que desplegarlo), así que la web en Vercel lo alcanza a través de un túnel **ngrok**.
+
+1. Crea una cuenta gratis en <https://dashboard.ngrok.com/signup>.
+2. Instala ngrok:
+
+   ```bash
+   winget install ngrok.ngrok
+   ```
+
+   En Mac: `brew install ngrok`. También puedes descargarlo de <https://ngrok.com/download>.
+3. Copia tu authtoken desde <https://dashboard.ngrok.com/get-started/your-authtoken> y regístralo (una sola vez):
+
+   ```bash
+   ngrok config add-authtoken TU_AUTHTOKEN
+   ```
+
+4. Reclama tu **dominio estático gratuito** en <https://dashboard.ngrok.com/domains> (ej. `nombre-ejemplo.ngrok-free.app`). Así la URL no cambia cada vez y no tienes que volver a desplegar en Vercel.
+5. Con el backend corriendo en el puerto 8000, abre el túnel en otra terminal:
+
+   ```bash
+   ngrok http --url=nombre-ejemplo.ngrok-free.app 8000
+   ```
+
+6. Comprueba en el navegador que `https://nombre-ejemplo.ngrok-free.app/health` responde `{"status":"ok", ...}`.
+
+> La web envía el header `ngrok-skip-browser-warning` en cada petición. Así se salta la página de aviso que ngrok gratis muestra a los navegadores, que de otro modo rompería las llamadas `fetch`.
+> Panel del túnel con cada petición en vivo: <http://127.0.0.1:4040>. Viene bien en la demo.
+
 ### Despliegue en Vercel
 
-1. Sube el repositorio a GitHub.
-2. En <https://vercel.com>: **Add New → Project → Import** tu repositorio.
-3. Configuración:
+La URL del túnel se guarda en el archivo **[`web-login/.env.production`](web-login/.env.production)**, que viaja con el repositorio. No hace falta configurar variables en el panel de Vercel.
+
+1. Pega tu link de ngrok en `web-login/.env.production` (sin `/` al final):
+
+   ```
+   VITE_API_URL=https://nombre-ejemplo.ngrok-free.app
+   ```
+
+2. Haz commit y push a GitHub.
+3. En <https://vercel.com>: **Add New → Project → Import** el repositorio `TallerMFA` y configura:
    - **Root Directory**: `web-login`
-   - Framework: **Vite** (detectado automáticamente; ya hay un `vercel.json`)
-   - **Environment Variables**: `VITE_API_URL` = la URL pública de tu backend
-4. Pulsa **Deploy**.
+   - Framework: **Vite** (se detecta solo; ya hay un `vercel.json`)
+4. Pulsa **Deploy**. Vercel te da una URL tipo `https://taller-mfa.vercel.app`.
+5. Pon esa URL en el `.env` del backend y reinicia uvicorn:
 
-Como el backend corre en tu PC (la guía dice que no hay que desplegarlo), la web en Vercel tiene que poder alcanzarlo. Hay dos opciones:
+   ```
+   CORS_ORIGINS=https://taller-mfa.vercel.app,http://localhost:5173
+   ```
 
-- **Opción A, túnel (recomendada para la demo):**
+Si tu link de ngrok cambia, edita `.env.production`, haz commit y push, y Vercel vuelve a desplegar solo. Con el dominio estático de ngrok el link nunca cambia.
 
-  ```bash
-  cloudflared tunnel --url http://localhost:8000
-  ```
-
-  También sirve `ngrok http 8000`. Pon la URL `https://….trycloudflare.com` en `VITE_API_URL` en Vercel y vuelve a desplegar (Deployments → Redeploy).
-- **Opción B, mismo PC:** `VITE_API_URL=http://localhost:8000`. Chrome pedirá permiso de *acceso a la red local*; acéptalo. El backend ya responde el header `Access-Control-Allow-Private-Network`.
-
-Restringe CORS en `.env` del backend:
-
-```
-CORS_ORIGINS=https://tu-app.vercel.app,http://localhost:5173
-```
-
-> Alternativa por CLI: `npm i -g vercel` → `cd web-login` → `vercel` → `vercel env add VITE_API_URL` → `vercel --prod`.
+> En local (`npm run dev`) la web usa `http://localhost:8000`. `.env.production` solo se aplica en `npm run build`, que es lo que corre Vercel.
 
 ---
 
@@ -234,15 +264,16 @@ npm run test:totp
 
 ## 6. Guion de las 4 pruebas de aceptación (sustentación)
 
-Antes de empezar, arranca todo:
+Antes de empezar, arranca todo, cada comando en su propia terminal:
 
 ```bash
 prefect server start
 uvicorn app.main:app --port 8000
+ngrok http --url=nombre-ejemplo.ngrok-free.app 8000
 npx expo start
 ```
 
-Abre la web (Vercel o local) y el dashboard de Prefect (<http://127.0.0.1:4200/runs>).
+Abre la web en Vercel y el dashboard de Prefect (<http://127.0.0.1:4200/runs>).
 
 1. **Paridad estándar.** Haz login en la web y pulsa **Generar código QR**. Escanea el **mismo QR** con la app propia y con **Google/Microsoft Authenticator**. Los dos muestran los mismos 6 dígitos al mismo tiempo. Después escribe el código en la web y pulsa **Activar 2FA** (estado `PENDING_VERIFICATION → ACTIVE`).
 2. **Modo avión.** Activa el modo avión en el celular y espera a que cambie la ventana de 30 s. Cierra sesión en la web, vuelve a iniciarla, escribe el código nuevo y entrarás a `GET /api/boveda-secreta` con `mfa_verified: true`.
@@ -262,7 +293,9 @@ Abre la web (Vercel o local) y el dashboard de Prefect (<http://127.0.0.1:4200/r
 | Problema | Solución |
 |----------|----------|
 | Los flows no aparecen en Prefect | Verifica que `PREFECT_API_URL=http://127.0.0.1:4200/api` esté en `.env` y que `prefect server start` esté corriendo **antes** que uvicorn. |
-| `NETWORK_ERROR` en la web | Revisa `VITE_API_URL`, que el backend corra y que `CORS_ORIGINS` incluya tu dominio. En Vercel, cambiar una variable exige *Redeploy*. |
+| `NETWORK_ERROR` en la web | Revisa el link en `web-login/.env.production`, que el backend **y** `ngrok http --url=… 8000` estén corriendo, y que `CORS_ORIGINS` incluya tu dominio de Vercel. |
+| ngrok `ERR_NGROK_3200` / offline | El túnel está cerrado. Vuelve a ejecutar `ngrok http --url=tu-dominio.ngrok-free.app 8000`. |
+| ngrok `ERR_NGROK_8012` | ngrok funciona pero el backend no responde en el puerto 8000. Levanta uvicorn. |
 | Código siempre inválido | Revisa la hora automática del celular y del PC. El backend acepta ±30 s (C-1, C, C+1). |
 | Expo Go: "incompatible SDK" | Actualiza Expo Go desde la tienda. El proyecto usa el SDK 58. |
 | Expo Go no conecta | Usa la misma Wi-Fi o `npx expo start --tunnel`. |

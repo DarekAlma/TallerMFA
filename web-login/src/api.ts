@@ -18,6 +18,8 @@ async function request<T>(path: string, options: { method?: string; token?: stri
       method: options.method ?? 'POST',
       headers: {
         'Content-Type': 'application/json',
+        // ngrok gratis responde con una página HTML de aviso a los navegadores; este header la omite.
+        'ngrok-skip-browser-warning': 'true',
         ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
       },
       body: options.body ? JSON.stringify(options.body) : undefined,
