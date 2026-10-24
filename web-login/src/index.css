@@ -63,6 +63,7 @@ code { font-family: ui-monospace, 'JetBrains Mono', Consolas, monospace; }
 .hint { font-size: 0.8rem; }
 
 label { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; font-weight: 600; }
+.field-hint { font-weight: 400; font-size: 0.75rem; color: var(--muted); }
 input { font: inherit; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); }
 input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .code-input { font-family: ui-monospace, Consolas, monospace; font-size: 2rem; text-align: center; letter-spacing: 0.35em; padding: 14px; }

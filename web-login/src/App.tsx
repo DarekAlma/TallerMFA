@@ -187,7 +187,18 @@ function CredentialsScreen({ onLoggedIn }: { onLoggedIn: (login: LoginResponse, 
       </div>
       <label>
         Usuario
-        <input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" required minLength={3} />
+        <input
+          value={username}
+          onChange={(e) => setUsername(e.target.value.trim())}
+          autoComplete="username"
+          autoCapitalize="none"
+          required
+          minLength={3}
+          maxLength={40}
+          pattern="[A-Za-z0-9_.\-]+"
+          title="Letras sin tilde, números, punto, guion o guion bajo (sin espacios ni @)"
+        />
+        <small className="field-hint">3–40 caracteres: letras, números, . - _ (sin espacios ni @)</small>
       </label>
       <label>
         Contraseña
@@ -198,7 +209,9 @@ function CredentialsScreen({ onLoggedIn }: { onLoggedIn: (login: LoginResponse, 
           autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
           required
           minLength={8}
+          maxLength={128}
         />
+        <small className="field-hint">Mínimo 8 caracteres</small>
       </label>
       {notice && <div className="alert alert-ok">{notice}</div>}
       <ErrorBox error={error} />

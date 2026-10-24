@@ -29,10 +29,28 @@ async function request<T>(path: string, options: { method?: string; token?: stri
   }
   const data = await response.json().catch(() => ({}))
   if (!response.ok) {
-    const detail = typeof data.detail === 'string' ? data.detail : 'Datos inválidos'
+    if (response.status === 422 && Array.isArray(data.detail)) {
+      throw new ApiError(422, 'VALIDATION_ERROR', describeValidation(data.detail))
+    }
+    const detail = typeof data.detail === 'string' ? data.detail : `Error ${response.status}`
     throw new ApiError(response.status, data.error ?? 'HTTP_ERROR', detail)
   }
   return data as T
+}
+
+// Traduce los errores de validación de FastAPI (422) a un mensaje legible.
+const FIELD_RULES: Record<string, string> = {
+  username: 'El usuario debe tener 3 a 40 caracteres: letras sin tilde, números, punto, guion o guion bajo (sin espacios ni @).',
+  password: 'La contraseña debe tener entre 8 y 128 caracteres.',
+  code: 'El código debe tener 6 dígitos (o XXXX-XXXX si es de respaldo).',
+}
+
+function describeValidation(errors: { loc?: unknown[]; msg?: string }[]): string {
+  const messages = errors.map((e) => {
+    const field = String(e.loc?.[e.loc.length - 1] ?? '')
+    return FIELD_RULES[field] ?? `${field}: ${e.msg ?? 'valor inválido'}`
+  })
+  return [...new Set(messages)].join(' ')
 }
 
 export type NextStep = 'VERIFY_2FA' | 'SETUP_2FA'

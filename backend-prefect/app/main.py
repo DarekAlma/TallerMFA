@@ -19,7 +19,7 @@ from typing import Literal
 import jwt
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field, SecretStr
 
@@ -113,6 +113,12 @@ def require_mfa_session(
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
+@app.get("/", include_in_schema=False)
+def root():
+    # Abrir la URL del túnel ngrok en el navegador lleva a la documentación de la API.
+    return RedirectResponse("/docs")
+
+
 @app.get("/health")
 def health():
     backend = "supabase" if settings.supabase_url else "sqlite"
