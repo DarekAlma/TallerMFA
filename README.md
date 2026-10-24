@@ -1,5 +1,9 @@
 # TallerMFA: Arquitectura 2FA (TOTP) desde cero + Observabilidad con Prefect
 
+# REVISADO EN CLASE!!!
+
+# Darek Aljuri Martinez
+
 Laboratorio del curso **Patrones Arquitectónicos Avanzados**. Prueba de concepto con 4 piezas.
 
 > 📘 Detalle técnico completo, incluido dónde se guarda cada secreto, más un banco de preguntas para la sustentación: [DOCUMENTACION_TECNICA.md](DOCUMENTACION_TECNICA.md).
