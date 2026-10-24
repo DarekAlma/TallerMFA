@@ -1,6 +1,8 @@
 # TallerMFA: Arquitectura 2FA (TOTP) desde cero + Observabilidad con Prefect
 
-Laboratorio del curso **Patrones Arquitectónicos Avanzados**. Prueba de concepto con 4 piezas:
+Laboratorio del curso **Patrones Arquitectónicos Avanzados**. Prueba de concepto con 4 piezas.
+
+> 📘 Detalle técnico completo, incluido dónde se guarda cada secreto, más un banco de preguntas para la sustentación: [DOCUMENTACION_TECNICA.md](DOCUMENTACION_TECNICA.md).
 
 | # | Pieza | Carpeta | Tecnología |
 |---|-------|---------|------------|
@@ -235,7 +237,16 @@ npm run test:totp
 ### Cómo verla en Expo Go
 
 1. En tu celular, instala **Expo Go** desde Play Store o App Store. Debe ser la versión que soporte el **SDK 58**; la de la tienda siempre soporta el SDK más reciente.
-2. En el PC:
+2. Crea una cuenta gratis en <https://expo.dev/signup> e inicia sesión con **la misma cuenta** en la CLI y en la app Expo Go (pestaña *Profile*/*Account*). En iPhone es obligatorio: Expo Go solo abre proyectos de una CLI con la misma sesión.
+
+   ```bash
+   npx expo login --no-browser
+   npx expo whoami
+   ```
+
+   Con `--no-browser` la CLI pide usuario/correo y contraseña en la terminal. El login por navegador (el modo por defecto) a veces no logra volver a `localhost` y deja la CLI sin sesión aunque la web diga que entraste. Si creaste la cuenta con Google o GitHub, primero define una contraseña en <https://expo.dev/settings>.
+
+3. En el PC:
 
    ```bash
    cd mobile-authenticator
@@ -243,16 +254,16 @@ npm run test:totp
    npx expo start
    ```
 
-3. Aparece un **código QR en la terminal**:
+4. Aparece un **código QR en la terminal**:
    - **Android**: abre Expo Go → *Scan QR code*.
    - **iPhone**: abre la app **Cámara** y apunta al QR; se abre en Expo Go.
-4. El celular y el PC deben estar en la **misma red Wi-Fi**. Si la red lo bloquea (redes universitarias), usa:
+5. El celular y el PC deben estar en la **misma red Wi-Fi**. Si la red lo bloquea (redes universitarias), usa:
 
    ```bash
    npx expo start --tunnel
    ```
 
-5. Para usarla:
+6. Para usarla:
    - En la app, pulsa **Escanear QR** y apunta al QR que muestra la web.
    - Sin cámara (emulador), usa **Ingresar semilla** y pega la semilla Base32 que muestra la web, debajo del QR.
    - Toca la tarjeta para copiar el código. Mantenla presionada para eliminar la cuenta.
